@@ -1,5 +1,8 @@
 import struct
 
+# Get this code from
+# https://raw.githubusercontent.com/flababah/cpuid.py/master/cpuid.py
+# (Python 2 only)
 from cpuid import CPUID
 
 
@@ -37,6 +40,7 @@ def support_avx(cpu):
     if not all_set(cpu, 1, 2, [26, 27, 28]):
         return False
     # See: http://www.felixcloutier.com/x86/XGETBV.html
+    # This code checks for OS support for AVX
     # xgetbv(0, &eax, &edx);
     # if((eax & 6) == 6){
     #  ret=1;  //OS support AVX
@@ -48,24 +52,16 @@ def bitmask(a, b, c):
     return (a >> b) & c
 
 
-CHIP2TEMPLATE = dict(
-    ivybridge='haswell',
-    broadwell='haswell',
-    penryn='dunnington',
-    steamroller='piledriver')
-
-NEEDS_AVX = ('sandybridge', 'haswell', 'bulldozer', 'piledriver')
-
 # Intel: family, model, extended model
 FAM_MOD_EXTMOD = {
     (6, 7, 1): 'penryn',
     (6, 13, 1): 'dunnington',
     (6, 10, 2): 'sandybridge',
     (6, 13, 2): 'sandybridge',
-    (6, 10, 3): 'sandybridge',
-    (6, 14, 3): 'sandybridge',
-    (6, 12, 3): 'ivybridge',
-    (6, 15, 3): 'ivybridge',
+    (6, 10, 3): 'ivybridge',
+    (6, 14, 3): 'ivybridge',
+    (6, 12, 3): 'haswell',
+    (6, 15, 3): 'haswell',
     (6, 13, 3): 'broadwell',
     (6, 5, 4): 'haswell',
     (6, 6, 4): 'haswell',
@@ -81,6 +77,16 @@ FAM_MOD_EXTFAM = {
     (15, 0, 6): 'steamroller',
 }
 
+# Templates are diffferent from chip name for some chips
+CHIP2TEMPLATE = dict(
+    ivybridge='sandybridge',
+    broadwell='haswell',
+    penryn='dunnington',
+    steamroller='piledriver')
+
+# These templates reset to reference if AVX support is missing
+NEEDS_AVX = ('sandybridge', 'haswell', 'bulldozer', 'piledriver')
+
 
 def cpu_detect(cpu):
     if not have_cpuid(cpu):
@@ -95,7 +101,6 @@ def cpu_detect(cpu):
     family = bitmask(eax, 8, 0x0f)
     model = bitmask(eax,  4, 0x0f)
     stepping  = bitmask(eax,  0, 0x0f)
-    have_avx = support_avx(cpu)
     if vendor == 'intel':
         chip = FAM_MOD_EXTMOD.get((family, model, extend_model),
                                   'reference')
@@ -103,7 +108,7 @@ def cpu_detect(cpu):
         chip = FAM_MOD_EXTFAM.get((family, model, extend_family),
                                   'reference')
     template = CHIP2TEMPLATE.get(chip, chip)
-    return ('reference' if (template in NEEDS_AVX and not have_avx)
+    return ('reference' if (template in NEEDS_AVX and not support_avx(cpu))
             else template)
 
 
