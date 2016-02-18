@@ -4,8 +4,7 @@
 #
 # This file is from https://github.com/flababah/cpuid.py commit 09f07f6
 #
-# It is the concatenation of cpuid.py and example.py, with the name == main
-# section removed.
+# It is an edited version of cpuid.py with the name == main section removed.
 #
 # The MIT License (MIT)
 #
@@ -29,7 +28,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import struct
 import platform
 import os
 import ctypes
@@ -149,6 +147,9 @@ class RegistersFunction(object):
 
 
 class CPUID(RegistersFunction):
+    """
+    http://www.felixcloutier.com/x86/CPUID.html
+    """
     def _get_opcodes(self):
         if not is_windows:
             return _POSIX_64_OPC if is_64bit else _CDECL_32_OPC
@@ -171,21 +172,3 @@ class XGETBV(RegistersFunction):
 
     def get_opcodes(self):
         return
-
-
-
-def cpu_vendor(cpu):
-    _, b, c, d = cpu(0)
-    return struct.pack("III", b, d, c)
-
-def cpu_name(cpu):
-    return "".join((struct.pack("IIII", *cpu(0x80000000 + i))
-            for i in range(2, 5))).strip()
-
-def is_set(cpu, id, reg_idx, bit):
-    regs = cpu(id)
-
-    if (1 << bit) & regs[reg_idx]:
-        return "Yes"
-    else:
-        return "--"
