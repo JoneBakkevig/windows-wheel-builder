@@ -98,12 +98,11 @@ class RegistersFunction(object):
     def __init__(self):
         if platform.machine() not in ("AMD64", "x86_64", "x86", "i686"):
             raise SystemError("Only available for x86")
-
+        self.win = self._get_win()
         opc = self._get_opcodes()
-        code = "".join((chr(x) for x in opc)).encode('latin1')
+        code = bytes(bytearray(opc))
         size = len(code)
         self.r = DwordRegisters()
-        self.win = self._get_win()
         self.addr = self._get_addr(size)
         assert self.addr
         ctypes.memmove(self.addr, code, size)
