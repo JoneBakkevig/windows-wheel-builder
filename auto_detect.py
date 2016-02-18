@@ -1,4 +1,4 @@
-from .cpuid import CPUID, cpu_vendor, cpu_name, is_set
+from cpuid import CPUID, cpu_vendor, cpu_name, is_set
 
 
 def have_cpuid(cpu):
@@ -34,6 +34,7 @@ def support_avx(cpu):
     """
     if not all_set(cpu, 1, 2, [26, 27, 28]):
         return False
+    # See: http://www.felixcloutier.com/x86/XGETBV.html
     # xgetbv(0, &eax, &edx);
     # if((eax & 6) == 6){
     #  ret=1;  //OS support AVX
@@ -46,15 +47,19 @@ def bitmask(a, b, c):
 
 
 def cpu_detect(cpu):
-    if not have_cpuid():
+    if not have_cpuid(cpu):
         return 'reference'
     vendor = get_vendor(cpu)
     eax, ebx, ecx, edx = cpu(1)
     extend_family = bitmask( eax, 20, 0xff )
     extend_model  = bitmask( eax, 16, 0x0f )
-    family        = bitmask( eax,  8, 0x0f )
-    model         = bitmask( eax,  4, 0x0f )
-    return (vendor, extend_family, extend_model, family, model)
+    processor_type = bitmask( eax, 12, 0x03 )
+    family = bitmask( eax,  8, 0x0f )
+    model = bitmask( eax,  4, 0x0f )
+    stepping  = bitmask( eax,  0, 0x0f )
+    return (vendor, extend_family, extend_model,
+            processor_type, family,
+            model, stepping)
 
 """
   if vendor == 'intel':

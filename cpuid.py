@@ -106,7 +106,7 @@ class RegistersFunction(object):
         size = len(code)
         self.r = DwordRegisters()
         self.win = self._get_win()
-        self.addr = self._get_addr(self, size)
+        self.addr = self._get_addr(size)
         assert self.addr
         ctypes.memmove(self.addr, code, size)
         func_type = CFUNCTYPE(None, POINTER(DwordRegisters), c_uint32)
