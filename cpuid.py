@@ -100,7 +100,7 @@ class RegistersFunction(object):
             raise SystemError("Only available for x86")
 
         opc = self._get_opcodes()
-        code = b"".join((chr(x) for x in opc))
+        code = "".join((chr(x) for x in opc)).encode('latin1')
         size = len(code)
         self.r = DwordRegisters()
         self.win = self._get_win()
